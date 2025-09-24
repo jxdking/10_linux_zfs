@@ -68,13 +68,13 @@ trap on_exit EXIT INT QUIT ABRT PIPE TERM
 import_pools() {
     # We have to ignore zpool import output, as potentially multiple / will be available,
     # and we need to autodetect all zpools this way with their real mountpoints.
-    local initial_pools="$(zpool list | awk '{if (NR>1) print $1}')"
+    local initial_pools="$(zpool list rpool | awk '{if (NR>1) print $1}')"
     local all_pools=""
     local imported_pools=""
     local err=""
 
     set +e
-    err="$(zpool import -f -a -o cachefile=none -o readonly=on -N 2>&1)"
+    #err="$(zpool import -f -a -o cachefile=none -o readonly=on -N 2>&1)"
     # Only print stderr if the command returned an error
     # (it can echo "No zpool to import" with success, which we don't want)
     if [ $? -ne 0 ]; then
@@ -82,7 +82,7 @@ import_pools() {
     fi
     set -e
 
-    all_pools="$(zpool list | awk '{if (NR>1) print $1}')"
+    all_pools="$(zpool list rpool | awk '{if (NR>1) print $1}')"
     for pool in ${all_pools}; do
         if echo "${initial_pools}" | grep -wq "${pool}"; then
             continue
@@ -95,7 +95,7 @@ import_pools() {
 
 # List all the dataset with a root mountpoint
 get_root_datasets() {
-    local pools="$(zpool list | awk '{if (NR>1) print $1}')"
+    local pools="$(zpool list rpool | awk '{if (NR>1) print $1}')"
 
     for p in ${pools}; do
         local rel_pool_root=$(zpool get -H altroot ${p} | awk '{print $3}')
